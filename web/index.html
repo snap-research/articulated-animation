@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>Motion Representations for Articulated Animation</title>
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- <base href="/"> -->
+
+    <link rel="stylesheet" href="./resources/bootstrap.min.css">
+    <link rel="stylesheet" href="./resources/font-awesome.min.css">
+    <link rel="stylesheet" href="./resources/codemirror.min.css">
+    <link rel="stylesheet" href="./resources/app.css">
+    <link rel="stylesheet" href="./resources/bootstrap.min(1).css">
+
+    <script src="./resources/jquery.min.js"></script>
+    <script src="./resources/bootstrap.min.js"></script>
+    <script src="./resources/codemirror.min.js"></script>
+    <script src="./resources/clipboard.min.js"></script>
+
+    <script src="./resources/app.js"></script>
+</head>
+
+
+<body>
+<div class="container" id="main">
+    <div class="row">
+        <h2 class="col-md-12 text-center">
+            Motion Representations for Articulated Animation<br>
+            <small>
+                CVPR 2021
+            </small>
+        </h2>
+    </div>
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <ul class="list-inline">
+                <li>
+                    <a href="https://aliaksandrsiarohin.github.io/aliaksandr-siarohin-website/">
+                        Aliaksandr Siarohin
+                    </a>
+                    <br>University of Trento
+                </li>
+                <li>
+                    <a href="https://ojwoodford.github.io/">
+                        Oliver Woodford
+                    </a>
+                    <br>Snap Inc.
+                </li>
+                <li>
+                    <a href="https://alanspike.github.io/">
+                        Jian Ren
+                    </a>
+                    <br>Snap Inc.
+                </li>
+                <li>
+                    <a href="https://mlchai.com/">
+                        Menglei Chai
+                    </a>
+                    <br>Snap Inc.
+                </li>
+                <li>
+                    <a href="http://www.stulyakov.com/">
+                        Sergey Tulyakov
+                    </a>
+                    <br>Snap Inc.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4 text-center">
+            <ul class="nav nav-pills nav-justified">
+                <li>
+                    <a href="">
+                        <img src="resources/paper-min.png" height="60px">
+                        <h4><strong>Paper</strong></h4>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.youtube.com/watch?v=gpBYN8t8_yY">
+                        <img src="resources/youtube_icon.png" height="60px">
+                        <h4><strong>Video</strong></h4>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/snap-research/articulated-animation">
+                        <img src="resources/github.png" height="60px"/>
+                        <h4><strong>Code</strong></h4>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Abstract
+            </h3>
+            <p class="text-justify">
+                We propose novel motion representations for animating articulated objects consisting of distinct parts.
+                In a completely unsupervised manner, our method identifies object parts, tracks them in a driving video,
+                and infers their motions
+                by considering their principal axes. In contrast to the previous keypoint-based works, our method
+                extracts meaningful and consistent regions,
+                describing locations, shape and pose. The regions correspond to semantically relevant and distinct
+                object parts, that are more easily detected in frames of the driving video.
+                To force decoupling of foreground from background, we model non-object related global motion with an
+                additional affine transformation.
+                To facilitate animation and prevent the leakage of the shape of the driving object, we disentangle shape
+                and pose of objects in the region space.
+                Our model1can animate a variety of objects, surpassing previous methods by a large margin on existing
+                benchmarks.
+                We present a challenging new benchmark with high-resolution "videos and show that the improvement is
+                particularly pronounced when articulated objects are considered, reaching 96.6% user preference vs. the
+                state of the art.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Video
+            </h3>
+            <div class="text-center">
+                <div style="position:relative;padding-top:56.25%;">
+                    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;"
+                            src="https://www.youtube.com/embed/gpBYN8t8_yY" title="YouTube video player" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Overview
+            </h3>
+            <img src="./resources/framework.png" class="img-responsive" alt="overview"><br>
+            <p class="text-justify">
+                The region predictor returns heatmaps for each part in the source and the driving images.
+                We then compute principal axes of each heatmap, to transform each region from the source to the driving
+                frame through a whitened reference frame.
+                Region and background transformations are combined by the pixel-wise flow prediction network.
+                The target image is generated by warping the source image in the feature space using the pixel-wise flow,
+                and inpainting newly introduced regions, as indicated by the confidence map.</p>
+
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Comparison on TedTalks
+            </h3>
+            <p class="text-justify">
+                We compare our model with the First Order Motion Model (FOMM). Due to much improved motion representations
+		our model shows substantially better results when articulated objects are animated. 
+		Our model generates impressive animations even when the poses of the source and the driving are significantly 
+		different. Each generated video has 384x384 resolution.</p>
+            <br>
+                 
+        </div>
+	<div class="col-md-12" >
+	<div class="col-md-6">
+	        <video id="v0" width="100%" autoplay="" loop="" muted="" controls="">
+                     <source src="videos/ted-comparison/example1.mp4"
+                         type="video/mp4"/>
+                </video>
+	</div>
+	<div class="col-md-6">
+                <video id="v1" width="100%" autoplay="" loop="" muted="" controls="">
+                     <source src="videos/ted-comparison/example2.mp4"
+                         type="video/mp4"/>
+                </video>
+	</div>
+	<div class="col-md-6">
+	        <video id="v0" width="100%" autoplay="" loop="" muted="" controls="">
+                     <source src="videos/ted-comparison/example3.mp4"
+                         type="video/mp4"/>
+                </video>
+	</div>
+	<div class="col-md-6">
+                <video id="v1" width="100%" autoplay="" loop="" muted="" controls="">
+                     <source src="videos/ted-comparison/example4.mp4"
+                         type="video/mp4"/>
+                </video>
+	</div>
+
+	</div>
+    </div>
+
+    <div class="row">
+	<div class="col-xs-12" style="height:20px;"></div>
+
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Comparison on TaiChiHD
+            </h3>
+            <p class="text-justify">
+	         We further trained on TaiChiHD dataset and observe similar improvements as with TedTalks. The TaiChiHD 
+		 dataset is simpler as on average object have similar shape and style.
+            <br>
+        </div>
+
+	<div class="col-xs-12" style="height:20px;"></div>
+
+	<div class="col-md-12">
+		<div class="col-md-6">
+                        <video id="v3" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/taichi-comparison/example1.mp4"
+                                    type="video/mp4"/>
+                        </video>
+		</div>
+		<div class="col-md-6">
+                        <video id="v4" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/taichi-comparison/example2.mp4"
+                                    type="video/mp4"/>
+                        </video>
+		</div>
+		<div class="col-md-6">
+                        <video id="v5" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/taichi-comparison/example3.mp4"
+                                    type="video/mp4"/>
+                        </video>
+		</div>
+		<div class="col-md-6">
+                        <video id="v6" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/taichi-comparison/example4.mp4"
+                                    type="video/mp4"/>
+                        </video>
+        	</div>
+	</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Comparison on MGif dataset
+            </h3>
+            <p class="text-justify">
+	          Our model shows improvements on the MGif dataset. Local shape and identity details of each character 
+		  are better preserved compared with FOMM.
+            <br>
+        </div>
+
+	<div class="col-xs-12" style="height:20px;"></div>
+        <div class="col-md-12 col-md-offset-1">
+	   
+        <div class="col-md-5">
+            <video id="v7" width="90%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/mgif/example1.mp4"
+                        type="video/mp4"/>
+            </video>
+	</div>
+        <div class="col-md-5">
+            <video id="v8" width="90%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/mgif/example2.mp4"
+                        type="video/mp4"/>
+            </video>
+	</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>Animation via disentanglement</h3>
+            <p class="text-justify">The standard or absolute animation involves copying 
+	    the pixels of the source image to their locations in the driving video. This changes
+	    the identity of subjects. For example,
+	    when the source and the driving have different hair style, the standard animation visually 
+	    enlarges the head, to match the head shape of the driving. Animation via disentanglement fixes such artifacts.</p>
+            <br/>
+        </div>
+        <div class="col-md-12" >
+             <div class="col-md-6">
+                        <video id="v555" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/ted-comparison/example1.mp4"
+                                    type="video/mp4"/>
+                        </video>
+            </div>
+             <div class="col-md-6">
+                        <video id="v655" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/ted-comparison/example2.mp4"
+                                    type="video/mp4"/>
+                        </video>
+              </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>Ablation study for region estimation</h3>
+            <p class="text-justify">Here we demonstrate the quality of learned regions and reconstruction quality for
+                different ablation experiments. The first column is ground truth video, the second corresponds to "No
+                pca or bg model" baseline (when affine transformations are predicted, no background modeling is used), 
+		the third column is the "No pca" baseline (when affine transformations are predicted, affine background
+		motion is used), the fourth column is the "No bg" baseline (when affine transformations are measured, 
+		no background model is used), finally the fifth column corresponds to "Full method".
+            </p>
+            <br/>
+        </div>
+        <div class="col-md-8 col-md-offset-2" style="display:table-cell; vertical-align:middle; text-align:center">
+            <video id="v7" width="100%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/ablation/example1.mp4" type="video/mp4"/>
+            </video>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>Qualitative region estimation results</h3>
+            <p class="text-justify"> We representative region estimation examples on the TaiChi dataset.
+            </p>
+        </div>
+        <div class="col-md-8 col-md-offset-2" style="display:table-cell; vertical-align:middle; text-align:center">
+            <video id="v71" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/regions/0.mp4" type="video/mp4"/>
+            </video>
+            <video id="v72" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/regions/2.mp4" type="video/mp4"/>
+            </video>
+            <video id="v73" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/regions/3.mp4" type="video/mp4"/>
+            </video>
+            <video id="v74" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/regions/4.mp4" type="video/mp4"/>
+            </video>
+            <video id="v75" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/regions/18.mp4" type="video/mp4"/>
+            </video>
+            <video id="v76" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/regions/13.mp4" type="video/mp4"/>
+            </video>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>Co-part segmentation results</h3>
+            <p class="text-justify"> Finally we apply our method to unsupervised co-part segmentation.
+            </p>
+        </div>
+        <div class="col-md-8 col-md-offset-2" style="display:table-cell; vertical-align:middle; text-align:center">
+            <video id="v81" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/copart/0.mp4" type="video/mp4"/>
+            </video>
+            <video id="v82" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/copart/2.mp4" type="video/mp4"/>
+            </video>
+            <video id="v83" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/copart/3.mp4" type="video/mp4"/>
+            </video>
+            <video id="v84" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/copart/4.mp4" type="video/mp4"/>
+            </video>
+            <video id="v85" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/copart/18.mp4" type="video/mp4"/>
+            </video>
+            <video id="v86" width="15%" autoplay="" loop="" muted="" controls="">
+                <source src="videos/copart/13.mp4" type="video/mp4"/>
+            </video>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
+                Citation
+            </h3>
+            <div class="form-group col-md-10 col-md-offset-1">
+                    <textarea id="bibtex" class="form-control" readonly="" style="display: none;">
+@inproceedings{siarohin2021motion,
+        author={Siarohin, Aliaksandr and Woodford, Oliver and Ren, Jian and Chai, Menglei and Tulyakov, Sergey},
+        title={Motion Representations for Articulated Animation},
+        booktitle = {CVPR},
+        year = {2021}
+}</textarea>
+                <div class="CodeMirror cm-s-default CodeMirror-wrap">
+                    <div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 4px; left: 4px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2" >
+        <p style="color:gray; text-align:right" >
+            The website template was borrowed from <a href="http://mgharbi.com/">Michaël Gharbi</a>.
+        </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
