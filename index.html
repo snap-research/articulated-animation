@@ -209,11 +209,44 @@
 
         <div class="col-md-8 col-md-offset-2">
             <h3>
+                Modeling background motion
+            </h3>
+            <p class="text-justify">
+	        During training we assume affine background motion, predicted by the background motion predictor network.  
+		At test time, this allows us to generate arbitrary affine motion in the background by passing the desired 
+		warp field to the pixel-wise flow predictor. Below we show two examples with static background, up ↔ down
+		and left ↔ right motion as well as left ↔ right rotation. 
+            <br>
+        </div>
+
+	<div class="col-xs-12" style="height:20px;"></div>
+
+	<div class="col-md-12">
+		<div class="col-md-6">
+                        <video id="v3" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/background/example1.mp4"
+                                    type="video/mp4"/>
+                        </video>
+		</div>
+		<div class="col-md-6">
+                        <video id="v4" width="100%" autoplay="" loop="" muted="" controls="">
+                            <source src="videos/background/example2.mp4"
+                                    type="video/mp4"/>
+                        </video>
+		</div>
+	</div>
+    </div>
+
+    <div class="row">
+	<div class="col-xs-12" style="height:20px;"></div>
+
+        <div class="col-md-8 col-md-offset-2">
+            <h3>
                 Comparison on TaiChiHD
             </h3>
             <p class="text-justify">
 	         We further trained on TaiChiHD dataset and observe similar improvements as with TedTalks. The TaiChiHD 
-		 dataset is simpler as on average object have similar shape and style.
+		 dataset is simpler as on average objects have similar shape and style.
             <br>
         </div>
 
