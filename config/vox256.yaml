@@ -1,0 +1,203 @@
+#Copyright Snap Inc. 2021. This sample code is made available by Snap Inc. for informational purposes only.
+#No license, whether implied or otherwise, is granted in or to such code (including any rights to copy, modify,
+#publish, distribute and/or commercialize such code), unless you have entered into a separate agreement for such rights.
+#Such code is provided as-is, without warranty of any kind, express or implied, including any warranties of merchantability,
+#title, fitness for a particular purpose, non-infringement, or that such code is free of defects, errors or viruses.
+#In no event will Snap Inc. be liable for any damages or losses of any kind arising from the sample code or your use thereof.
+
+
+# Dataset parameters
+# Each dataset should contain 2 folders train and test
+# Each video can be represented as:
+#   - an image of concatenated frames
+#   - '.mp4' or '.gif'
+#   - folder with all frames from a specific video
+dataset_params:
+  # Path to data, data can be stored in several formats: .mp4 or .gif videos, stacked .png images or folders with frames.
+  # Folder with frames is preferred format for training, since it is the fastest.
+  root_dir: data/vox-png
+  # Shape to resize all frames to, specify null if resizing is not needed
+  frame_shape: null
+  # In case of Vox or Taichi single video can be splitted in many chunks, or the maybe several videos for single person.
+  # In this case epoch can be a pass over different identities (if id_sampling=True) or over different chunks (if id_sampling=False)
+  # If the name of the video '12335#adsbf.mp4' the id is assumed to be 12335
+  id_sampling: True
+  # List with pairs for animation, null for random pairs
+  pairs_list: null
+  # Augmentation parameters see augmentation.py for all possible augmentations
+  augmentation_params:
+    flip_param:
+      horizontal_flip: True
+      time_flip: True
+    jitter_param:
+      brightness: 0.1
+      contrast: 0.1
+      saturation: 0.1
+      hue: 0.1
+
+# Defines architecture of the model
+model_params:
+  # Number of regions
+  num_regions: 10
+  # Number of channels, for RGB image it is always 3
+  num_channels: 3
+  # Enable estimation of affine parameters for each region,
+  # set to False if only region centers (keypoints) need to be estimated
+  estimate_affine: True
+  # Svd can perform random axis swap between source and driving if singular values are close to each other
+  # Set to True to avoid axis swap between source and driving
+  revert_axis_swap: True
+
+  # Parameters of background prediction network based on simple Unet-like encoder.
+  bg_predictor_params:
+    # Number of features multiplier
+    block_expansion: 32
+    # Maximum allowed number of features
+    max_features: 1024
+    # Number of block in the Encoder.
+    num_blocks: 5
+    # Type of background movement model, select one from ['zero', 'shift', 'affine', 'perspective']
+    bg_type: 'affine'
+
+  # Parameters of the region prediction network based on Unet
+  region_predictor_params:
+    # Softmax temperature for heatmaps
+    temperature: 0.1
+    # Number of features multiplier
+    block_expansion: 32
+    # Maximum allowed number of features
+    max_features: 1024
+    # Regions is predicted on smaller images for better performance,
+    # scale_factor=0.25 means that 256x256 image will be resized to 64x64
+    scale_factor: 0.25
+    # Number of block in Unet. Can be increased or decreased depending or resolution.
+    num_blocks: 5
+    # Either to use pca_based estimation of affine parameters of regression based
+    pca_based: True
+    # Either to use fast_svd (https://github.com/KinglittleQ/torch-batch-svd) or standard pytorch svd
+    # Fast svd may produce not meaningful regions if used along with revert_axis_swap
+    fast_svd: False
+
+  # Parameters of Generator, based on Jonson architecture
+  generator_params:
+    # Number of features multiplier
+    block_expansion: 64
+    # Maximum allowed number of features
+    max_features: 512
+    # Number of down-sampling blocks in Jonson architecture.
+    # Can be increased or decreased depending or resolution.
+    num_down_blocks: 2
+    # Number of ResBlocks  in Jonson architecture.
+    num_bottleneck_blocks: 6
+    # To use skip connections or no.
+    skips: True
+    # Parameters of pixelwise flow predictor based on Unet
+    pixelwise_flow_predictor_params:
+      # Number of features multiplier
+      block_expansion: 64
+      # Maximum allowed number of features
+      max_features: 1024
+      # Number of block in Unet. Can be increased or decreased depending or resolution.
+      num_blocks: 5
+      # Flow predictor operates on the smaller images for better performance,
+      # scale_factor=0.25 means that 256x256 image will be resized to 64x64
+      scale_factor: 0.25
+      # Set to True in order to use deformed source images using sparse flow
+      use_deformed_source: True
+      # Set to False in order to render region heatmaps with fixed covariance
+      # True for covariance estimate using region_predictor
+      use_covar_heatmap: True
+      # Set to False to disable occlusion mask estimation
+      estimate_occlusion_map: True
+
+  # Parameter for animation-via-disentanglement (avd) network
+  avd_network_params:
+    # Bottleneck for identity branch
+    id_bottle_size: 64
+    # Bottleneck for pose branch
+    pose_bottle_size: 64
+
+# Parameters of training (reconstruction)
+train_params:
+  # Number of training epochs, visualization is produced after each epoch.
+  num_epochs: 100
+  # For better i/o performance when number of videos is small number of epochs can be multiplied by this number.
+  # Thus effectively with num_repeats=100 each epoch is 100 times larger.
+  num_repeats: 75
+  # Drop learning rate 10 times after this epochs
+  epoch_milestones: [60, 90]
+  # Initial learning rate
+  lr: 2.0e-4
+  # Batch size. (14 is batch size for one V100 gpu).
+  batch_size: 14
+  # Either to use sync_bn or not, enabling sync_bn will significantly slow the training time
+  use_sync_bn: False
+  # Dataset preprocessing cpu workers
+  dataloader_workers: 6
+  # Save checkpoint this frequently. If checkpoint_freq=50, checkpoint will be saved every 50 epochs.
+  checkpoint_freq: 50
+  # Scales for perceptual pyramide loss. If scales = [1, 0.5, 0.25, 0.125] and image resolution is 256x256,
+  # than the loss will be computer on resolutions 256x256, 128x128, 64x64, 32x32.
+  scales: [1, 0.5, 0.25, 0.125]
+  # Parameters of transform for equivariance loss
+  transform_params:
+    sigma_affine: 0.05
+    sigma_tps: 0.005
+    points_tps: 5
+  loss_weights:
+    # Weights for perceptual pyramide loss. Note that here you can only specify weight across the layer, and
+    # weights across the resolution will be the same.
+    perceptual: [10, 10, 10, 10, 10]
+    # Weights for equivariance loss.
+    equivariance_shift: 10
+    equivariance_affine: 10
+
+# Parameters of training (animation-via-disentanglement)
+train_avd_params:
+  # Number of training epochs, visualization is produced after each epoch.
+  num_epochs: 30
+  # For better i/o performance when number of videos is small number of epochs can be multiplied by this number.
+  # Thus effectively with num_repeats=100 each epoch is 100 times larger.
+  num_repeats: 2000
+  # Batch size.
+  batch_size: 256
+  # Dataset preprocessing cpu workers
+  dataloader_workers: 20
+   # Save checkpoint this frequently. If checkpoint_freq=50, checkpoint will be saved every 50 epochs.
+  checkpoint_freq: 50
+  # Drop learning rate 10 times after this epochs
+  epoch_milestones: [20, 25]
+  # Initial learning rate
+  lr: 1.0e-3
+  # Maximum value for scaling augmentation, that emulate objects with different shape
+  random_scale: 0.25
+  # Weights for equivariance loss.
+  lambda_shift: 1
+  lambda_affine: 1
+
+# Parameters of reconstruction mode
+reconstruction_params:
+  # Maximum number of videos for reconstruction
+  num_videos: 1000
+  # Format for visualization, note that results will be also stored in staked .png for evaluation.
+  format: '.mp4'
+
+# Parameters of animation
+animate_params:
+  # Maximum number of pairs for animation, the pairs will be either taken from pairs_list or random.
+  num_pairs: 50
+  # Format for visualization
+  format: '.mp4'
+  # Animation mode, select one from [avd, standard, relative]
+  mode: 'avd'
+
+# Parameters of visualization
+visualizer_params:
+  # Size of keypoints
+  kp_size: 5
+  # Draw border between images or not
+  draw_border: True
+  # Colormap for regions and keypoints visualization
+  colormap: 'gist_rainbow'
+  # Background color for region visualization
+  region_bg_color: [1, 1, 1]
