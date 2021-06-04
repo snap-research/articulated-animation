@@ -57,7 +57,7 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
                 optimizer.zero_grad()
                 losses = {key: value.mean().detach().data.cpu().numpy() for key, value in losses.items()}
                 logger.log_iter(losses=losses)
-
+                
             scheduler.step()
             logger.log_epoch(epoch, {'generator': generator,
                                      'bg_predictor': bg_predictor,

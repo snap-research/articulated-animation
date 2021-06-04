@@ -49,7 +49,8 @@ if __name__ == "__main__":
 
     opt = parser.parse_args()
     with open(opt.config) as f:
-        config = yaml.load(f)
+        # config = yaml.load(f)
+        config = yaml.safe_load(f)
 
     if opt.checkpoint is not None:
         log_dir = os.path.join(*os.path.split(opt.checkpoint)[:-1])
@@ -97,7 +98,8 @@ if __name__ == "__main__":
         os.makedirs(log_dir)
     if not os.path.exists(os.path.join(log_dir, os.path.basename(opt.config))):
         copy(opt.config, log_dir)
-
+    print (dataset)
+    
     if opt.mode == 'train':
         print("Training...")
         train(config, generator, region_predictor, bg_predictor, opt.checkpoint, log_dir, dataset, opt.device_ids)
