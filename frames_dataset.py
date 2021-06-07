@@ -114,6 +114,7 @@ class FramesDataset(Dataset):
             self.transform = AllAugmentationTransform(**augmentation_params)
         else:
             self.transform = None
+        
 
     def __len__(self):
         return len(self.videos)
@@ -136,7 +137,7 @@ class FramesDataset(Dataset):
             frames = os.listdir(path)
             num_frames = len(frames)
             frame_idx = np.sort(np.random.choice(num_frames, replace=True, size=2))
-            
+
             if self.frame_shape is not None:
                 resize_fn = partial(resize, output_shape=self.frame_shape)
             else:
@@ -171,7 +172,7 @@ class FramesDataset(Dataset):
 
         out['name'] = video_name
         out['id'] = idx
-        
+
         return out
 
 

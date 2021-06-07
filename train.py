@@ -16,6 +16,16 @@ from torch.optim.lr_scheduler import MultiStepLR
 from sync_batchnorm import DataParallelWithCallback
 from frames_dataset import DatasetRepeater
 
+def save_latest_ckpts(model_dict):
+    cpk = {k: v.state_dict() for k, v in model_dict.items()}
+    print (cpk)
+    exit()
+    cpk['epoch_' + self.train_mode] = self.epoch
+    basename = '%s-cpk-' % str(self.epoch).zfill(self.zfill_num) + self.train_mode + '.pth'
+    cpk_path = os.path.join(self.cpk_dir, basename)
+    print (cpk_path)
+    if not (os.path.exists(cpk_path) and emergent):
+        torch.save(cpk, cpk_path)
 
 def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir, dataset, device_ids):
     train_params = config['train_params']
@@ -45,19 +55,34 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
         else:
             model = torch.nn.DataParallel(model, device_ids=device_ids)
 
+
+    total_iters = 0
     with Logger(log_dir=log_dir, visualizer_params=config['visualizer_params'],
                 checkpoint_freq=train_params['checkpoint_freq']) as logger:
         for epoch in trange(start_epoch, train_params['num_epochs']):
             for x in dataloader:
-                losses, generated = model(x)
-                loss_values = [val.mean() for val in losses.values()]
-                loss = sum(loss_values)
-                loss.backward()
-                optimizer.step()
-                optimizer.zero_grad()
-                losses = {key: value.mean().detach().data.cpu().numpy() for key, value in losses.items()}
-                logger.log_iter(losses=losses)
-                
+
+                if ((total_iters+1) % 100) == 0:
+                    print (total_iters)
+                    save_latest_ckpts({'generator': generator,
+                                             'bg_predictor': bg_predictor,
+                                             'region_predictor': region_predictor,
+                                             'optimizer_reconstruction': optimizer})
+                if total_iters+1 > 100000:
+                    print (total_iters)
+                    exit()
+                # losses, generated = model(x)
+                # loss_values = [val.mean() for val in losses.values()]
+                # loss = sum(loss_values)
+                # loss.backward()
+                # optimizer.step()
+                # optimizer.zero_grad()
+                # losses = {key: value.mean().detach().data.cpu().numpy() for key, value in losses.items()}
+                # logger.log_iter(losses=losses)
+
+                total_iters += 1
+
+
             scheduler.step()
             logger.log_epoch(epoch, {'generator': generator,
                                      'bg_predictor': bg_predictor,

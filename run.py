@@ -98,7 +98,6 @@ if __name__ == "__main__":
         os.makedirs(log_dir)
     if not os.path.exists(os.path.join(log_dir, os.path.basename(opt.config))):
         copy(opt.config, log_dir)
-    print (dataset)
     
     if opt.mode == 'train':
         print("Training...")

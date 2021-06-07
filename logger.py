@@ -103,6 +103,7 @@ class Logger:
         self.loss_list.append(list(losses.values()))
 
     def log_epoch(self, epoch, models, inp, out):
+
         self.epoch = epoch
         self.models.update(models)
         if (self.epoch + 1) % self.checkpoint_freq == 0:
