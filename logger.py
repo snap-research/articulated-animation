@@ -38,6 +38,7 @@ class Logger:
         self.names = None
         self.models = {}
 
+
     def log_scores(self, loss_names):
         loss_mean = np.array(self.loss_list).mean(axis=0)
 

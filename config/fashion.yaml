@@ -64,9 +64,9 @@ train_params:
   num_repeats: 150
   epoch_milestones: [60, 90]
   lr: 2.0e-4
-  batch_size: 6
+  batch_size: 24
   dataloader_workers: 6
-  checkpoint_freq: 50
+  checkpoint_freq: 10
   scales: [1, 0.5, 0.25, 0.125]
   transform_params:
     sigma_affine: 0.05

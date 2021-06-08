@@ -17,9 +17,9 @@ from sync_batchnorm import DataParallelWithCallback
 from frames_dataset import DatasetRepeater
 import os
 
-def save_latest_ckpts(model_dict, iter_num, log_dir):
+def save_latest_ckpts(model_dict, iter_num, log_dir, train_mode, epoch):
     cpk = {k: v.state_dict() for k, v in model_dict.items()}
-    # cpk['epoch_' + self.train_mode] = self.epoch
+    cpk['epoch_' + train_mode] = epoch
     basename = '{}.pth'.format(iter_num)
     cpk_path = os.path.join(log_dir, basename)
     torch.save(cpk, cpk_path)
@@ -58,15 +58,19 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
     with Logger(log_dir=log_dir, visualizer_params=config['visualizer_params'],
                 checkpoint_freq=train_params['checkpoint_freq']) as logger:
         for epoch in trange(start_epoch, train_params['num_epochs']):
+
             for x in dataloader:
 
-                if ((total_iters+1) % 1000) == 0:
+                if ((total_iters+1) % 2) == 0:
                     save_latest_ckpts({'generator': generator,
                                              'bg_predictor': bg_predictor,
                                              'region_predictor': region_predictor,
                                              'optimizer_reconstruction': optimizer},
                                              total_iters,
-                                             log_dir)
+                                             log_dir,
+                                             train_mode = 'reconstruction',
+                                             epoch = epoch)
+
 
                 losses, generated = model(x)
                 loss_values = [val.mean() for val in losses.values()]
@@ -76,7 +80,7 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
                 optimizer.zero_grad()
                 losses = {key: value.mean().detach().data.cpu().numpy() for key, value in losses.items()}
                 logger.log_iter(losses=losses)
-
+                #
                 total_iters += 1
 
 
