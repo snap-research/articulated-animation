@@ -45,6 +45,7 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
     dataloader = DataLoader(dataset, batch_size=train_params['batch_size'], shuffle=True,
                             num_workers=train_params['dataloader_workers'], drop_last=True)
 
+    
     model = ReconstructionModel(region_predictor, bg_predictor, generator, train_params)
 
     if torch.cuda.is_available():

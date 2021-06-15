@@ -75,6 +75,7 @@ class RegionPredictor(nn.Module):
         return region_params
 
     def forward(self, x):
+
         if self.scale_factor != 1:
             x = self.down(x)
 

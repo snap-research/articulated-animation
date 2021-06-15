@@ -81,6 +81,7 @@ if __name__ == "__main__":
 
     bg_predictor = BGMotionPredictor(num_channels=config['model_params']['num_channels'],
                                      **config['model_params']['bg_predictor_params'])
+    
     if torch.cuda.is_available():
         bg_predictor.to(opt.device_ids[0])
     if opt.verbose:
@@ -98,7 +99,7 @@ if __name__ == "__main__":
         os.makedirs(log_dir)
     if not os.path.exists(os.path.join(log_dir, os.path.basename(opt.config))):
         copy(opt.config, log_dir)
-    
+
     if opt.mode == 'train':
         print("Training...")
         train(config, generator, region_predictor, bg_predictor, opt.checkpoint, log_dir, dataset, opt.device_ids)

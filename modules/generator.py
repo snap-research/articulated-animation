@@ -12,7 +12,9 @@ from torch import nn
 import torch.nn.functional as F
 from modules.util import ResBlock2d, SameBlock2d, UpBlock2d, DownBlock2d
 from modules.pixelwise_flow_predictor import PixelwiseFlowPredictor
-
+import flow_vis
+import matplotlib.pyplot as plt
+import numpy as np
 
 class Generator(nn.Module):
     """
@@ -106,6 +108,14 @@ class Generator(nn.Module):
         else:
             motion_params = None
 
+
+        # gt_flow = np.load('frame_0001.npy')
+        # this_flow = motion_params['occlusion_map'].squeeze().numpy()
+        # flow_color = flow_vis.flow_to_color(this_flow)
+        # plt.imshow(this_flow)
+        # plt.show()
+        # exit()
+        
         out = self.apply_optical(input_previous=None, input_skip=out, motion_params=motion_params)
 
         out = self.bottleneck(out)
@@ -117,6 +127,7 @@ class Generator(nn.Module):
             out = self.apply_optical(input_skip=skips[0], input_previous=out, motion_params=motion_params)
         out = self.final(out)
         out = F.sigmoid(out)
+
 
         if self.skips:
             out = self.apply_optical(input_skip=source_image, input_previous=out, motion_params=motion_params)

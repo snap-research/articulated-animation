@@ -165,6 +165,8 @@ class ReconstructionModel(torch.nn.Module):
         driving_region_params = self.region_predictor(x['driving'])
 
         bg_params = self.bg_predictor(x['source'], x['driving'])
+        print (bg_params)
+        exit()
         generated = self.generator(x['source'], source_region_params=source_region_params,
                                    driving_region_params=driving_region_params, bg_params=bg_params)
         generated.update({'source_region_params': source_region_params, 'driving_region_params': driving_region_params})

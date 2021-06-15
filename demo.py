@@ -7,6 +7,7 @@ title, fitness for a particular purpose, non-infringement, or that such code is 
 In no event will Snap Inc. be liable for any damages or losses of any kind arising from the sample code or your use thereof.
 """
 
+import pickle
 import sys
 import yaml
 from argparse import ArgumentParser
@@ -23,9 +24,13 @@ from modules.generator import Generator
 from modules.region_predictor import RegionPredictor
 from modules.avd_network import AVDNetwork
 from animate import get_animation_region_params
-import matplotlib
+# import matplotlib
+#
+# matplotlib.use('Agg')
+import torch.nn.functional as F
+import torch
+import matplotlib.pyplot as plt
 
-matplotlib.use('Agg')
 
 if sys.version_info[0] < 3:
     raise Exception("You must use Python 3 or higher. Recommended version is Python 3.7")
@@ -76,6 +81,7 @@ def load_checkpoints(config_path, checkpoint_path, cpu=False):
 
 def make_animation(source_image, driving_video, generator, region_predictor, avd_network,
                    animation_mode='standard', cpu=False):
+
     with torch.no_grad():
         predictions = []
         source = torch.tensor(source_image[np.newaxis].astype(np.float32)).permute(0, 3, 1, 2)
@@ -85,6 +91,18 @@ def make_animation(source_image, driving_video, generator, region_predictor, avd
         source_region_params = region_predictor(source)
         driving_region_params_initial = region_predictor(driving[:, :, 0])
 
+
+        # src_heatmaps = source_region_params['heatmap'].squeeze()
+        # src_heatmaps = driving_region_params_initial['heatmap'].squeeze()
+        # for src_heatmap in src_heatmaps:
+        #     src_heatmap_np = src_heatmap.numpy()
+        #     plt.imshow(src_heatmap_np)
+        #     plt.show()
+        #
+        # exit()
+
+
+
         for frame_idx in tqdm(range(driving.shape[2])):
             driving_frame = driving[:, :, frame_idx]
             if not cpu:
@@ -93,6 +111,7 @@ def make_animation(source_image, driving_video, generator, region_predictor, avd
             new_region_params = get_animation_region_params(source_region_params, driving_region_params,
                                                             driving_region_params_initial, avd_network=avd_network,
                                                             mode=animation_mode)
+
             out = generator(source, source_region_params=source_region_params, driving_region_params=new_region_params)
 
             predictions.append(np.transpose(out['prediction'].data.cpu().numpy(), [0, 2, 3, 1])[0])
@@ -104,14 +123,20 @@ def main(opt):
     reader = imageio.get_reader(opt.driving_video)
     fps = reader.get_meta_data()['fps']
     reader.close()
-    driving_video = imageio.mimread(opt.driving_video, memtest=False)
+    # driving_video = imageio.mimread(opt.driving_video, memtest=False)
 
     source_image = resize(source_image, opt.img_shape)[..., :3]
-    driving_video = [resize(frame, opt.img_shape)[..., :3] for frame in driving_video]
+    # driving_video = [resize(frame, opt.img_shape)[..., :3] for frame in driving_video]
+    # with open('driving_video.pickle', 'wb') as f:
+        # pickle.dump(driving_video, f)
+
+    with open('driving_video.pickle', 'rb') as f:
+        driving_video = pickle.load(f)
+
     generator, region_predictor, avd_network = load_checkpoints(config_path=opt.config,
                                                                 checkpoint_path=opt.checkpoint, cpu=opt.cpu)
     predictions = make_animation(source_image, driving_video, generator, region_predictor, avd_network,
-                                 animation_mode=opt.mode, cpu=opt.cpu)
+                                 animation_mode='avd', cpu=opt.cpu)
     imageio.mimsave(opt.result_video, [img_as_ubyte(frame) for frame in predictions], fps=fps)
 
 
