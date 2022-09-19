@@ -33,6 +33,9 @@ python demo.py  --config config/dataset_name.yaml --driving_video path/to/drivin
 ```
 The result will be stored in ```result.mp4```. To use Animation via Disentaglemet add ```--mode avd```, for standard animation add  ```--mode standard``` instead.
 
+Checkpoints from google drive:
+https://drive.google.com/drive/folders/1jCeFPqfU_wKNYwof0ONICwsj3xHlr_tb
+
 ### Colab Demo 
 We prepared a demo runnable in google-colab, see: ```demo.ipynb```.
 
