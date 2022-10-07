@@ -9,7 +9,7 @@
 dataset_params:
   root_dir: /home/jupyter/data-lake/downloaded-videos
   frame_shape: null
-  id_sampling: True
+  id_sampling: False
   pairs_list: null
   augmentation_params:
     flip_param:
