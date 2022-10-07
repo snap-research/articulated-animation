@@ -102,7 +102,7 @@ def make_animation(source_image, driving_video, generator, region_predictor, avd
 
 def main(opt):
     source_image = imageio.imread(opt.source_image)
-    reader = imageio.get_reader(opt.driving_video)
+    reader = imageio.get_reader(opt.driving_video, memtest=False)
     fps = reader.get_meta_data()['fps']
     reader.close()
     driving_video = imageio.mimread(opt.driving_video, memtest=False)
