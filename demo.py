@@ -33,7 +33,7 @@ if sys.version_info[0] < 3:
 
 def load_checkpoints(config_path, checkpoint_path, cpu=False):
     with open(config_path) as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
     generator = Generator(num_regions=config['model_params']['num_regions'],
                           num_channels=config['model_params']['num_channels'],
