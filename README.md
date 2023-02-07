@@ -26,6 +26,9 @@ See description of the parameters in the ```config/vox256.yaml```. We adjust the
 ### Pre-trained checkpoints
 Checkpoints can be found in ```checkpoints``` folder. Checkpoints are large, therefore we use [git lsf](https://git-lfs.github.com/) to store them. Either use ```git lfs pull``` or download checkpoints manually from github.
 
+Alternatively from google drive using this link:
+https://drive.google.com/drive/folders/1jCeFPqfU_wKNYwof0ONICwsj3xHlr_tb?usp=sharing
+
 ### Animation Demo
 To run a demo, download a checkpoint and run the following command:
 ```bash
