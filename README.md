@@ -26,6 +26,9 @@ See description of the parameters in the ```config/vox256.yaml```. We adjust the
 ### Pre-trained checkpoints
 Checkpoints can be found in https://drive.google.com/drive/folders/1jCeFPqfU_wKNYwof0ONICwsj3xHlr_tb?usp=sharing.
 
+Alternatively from google drive using this link:
+https://drive.google.com/drive/folders/1jCeFPqfU_wKNYwof0ONICwsj3xHlr_tb?usp=sharing
+
 ### Animation Demo
 To run a demo, download a checkpoint and run the following command:
 ```bash
