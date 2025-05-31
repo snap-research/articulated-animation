@@ -32,8 +32,9 @@ if sys.version_info[0] < 3:
 
 
 def load_checkpoints(config_path, checkpoint_path, cpu=False):
+    # ✅ Use safe YAML loading
     with open(config_path) as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
     generator = Generator(num_regions=config['model_params']['num_regions'],
                           num_channels=config['model_params']['num_channels'],
@@ -101,6 +102,16 @@ def make_animation(source_image, driving_video, generator, region_predictor, avd
 
 
 def main(opt):
+    # ✅ Validate file paths before proceeding
+    for path_label, path_value in {
+        "source image": opt.source_image,
+        "driving video": opt.driving_video,
+        "checkpoint": opt.checkpoint,
+        "config": opt.config
+    }.items():
+        if not path_value or not os.path.exists(path_value):
+            raise FileNotFoundError(f"Missing or invalid path for {path_label}: {path_value}")
+
     source_image = imageio.imread(opt.source_image)
     reader = imageio.get_reader(opt.driving_video)
     fps = reader.get_meta_data()['fps']
@@ -117,18 +128,18 @@ def main(opt):
 
 
 if __name__ == "__main__":
+    from os import path
     parser = ArgumentParser()
-    parser.add_argument("--config", required=True, help="path to config")
-    parser.add_argument("--checkpoint", default='ted384.pth', help="path to checkpoint to restore")
-
-    parser.add_argument("--source_image", default='sup-mat/source.png', help="path to source image")
-    parser.add_argument("--driving_video", default='sup-mat/driving.mp4', help="path to driving video")
-    parser.add_argument("--result_video", default='result.mp4', help="path to output")
-
+    parser.add_argument("--config", required=True, help="Path to config YAML file")
+    parser.add_argument("--checkpoint", default='ted384.pth', help="Path to model checkpoint (.pth)")
+    parser.add_argument("--source_image", default='sup-mat/source.png', help="Path to source image")
+    parser.add_argument("--driving_video", default='sup-mat/driving.mp4', help="Path to driving video")
+    parser.add_argument("--result_video", default='result.mp4', help="Path to save the resulting animation")
     parser.add_argument("--mode", default='avd', choices=['standard', 'relative', 'avd'],
-                        help="Animation mode")
+                        help="Animation mode to use")
     parser.add_argument("--img_shape", default="384,384", type=lambda x: list(map(int, x.split(','))),
-                        help='Shape of image, that the model was trained on.')
-    parser.add_argument("--cpu", dest="cpu", action="store_true", help="cpu mode.")
+                        help='Shape of the image used in training, e.g., 384,384')
+    parser.add_argument("--cpu", dest="cpu", action="store_true", help="Run the model on CPU instead of GPU")
 
     main(parser.parse_args())
+
