@@ -7,14 +7,21 @@ title, fitness for a particular purpose, non-infringement, or that such code is 
 In no event will Snap Inc. be liable for any damages or losses of any kind arising from the sample code or your use thereof.
 """
 
-from tqdm import trange
+import os
 import torch
+import yaml
+from tqdm import trange
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import MultiStepLR
+from argparse import ArgumentParser
+
 from logger import Logger
 from modules.model import ReconstructionModel
-from torch.optim.lr_scheduler import MultiStepLR
+from modules.generator import Generator
+from modules.region_predictor import RegionPredictor
+from modules.bg_predictor import BGPredictor
 from sync_batchnorm import DataParallelWithCallback
-from frames_dataset import DatasetRepeater
+from frames_dataset import FramesDataset, DatasetRepeater
 
 
 def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir, dataset, device_ids):
@@ -31,6 +38,7 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
         start_epoch = 0
 
     scheduler = MultiStepLR(optimizer, train_params['epoch_milestones'], gamma=0.1, last_epoch=start_epoch - 1)
+
     if 'num_repeats' in train_params or train_params['num_repeats'] != 1:
         dataset = DatasetRepeater(dataset, train_params['num_repeats'])
 
@@ -63,3 +71,41 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
                                      'bg_predictor': bg_predictor,
                                      'region_predictor': region_predictor,
                                      'optimizer_reconstruction': optimizer}, inp=x, out=generated)
+
+# ✅ Command-line runner
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--config", required=True, help="Path to config YAML file")
+    parser.add_argument("--checkpoint", default=None, help="Path to checkpoint to resume training (optional)")
+    parser.add_argument("--device_ids", type=int, nargs='+', default=[0], help="List of GPU device IDs (e.g., 0 1)")
+
+    args = parser.parse_args()
+
+    # ✅ Validate config file
+    if not os.path.exists(args.config):
+        raise FileNotFoundError(f"Config file not found: {args.config}")
+
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
+    # ✅ Setup model components
+    generator = Generator(num_regions=config['model_params']['num_regions'],
+                          num_channels=config['model_params']['num_channels'],
+                          **config['model_params']['generator_params'])
+    region_predictor = RegionPredictor(num_regions=config['model_params']['num_regions'],
+                                       num_channels=config['model_params']['num_channels'],
+                                       estimate_affine=config['model_params']['estimate_affine'],
+                                       **config['model_params']['region_predictor_params'])
+    bg_predictor = BGPredictor(num_regions=config['model_params']['num_regions'],
+                               **config['model_params']['bg_predictor_params'])
+
+    if torch.cuda.is_available():
+        generator.cuda()
+        region_predictor.cuda()
+        bg_predictor.cuda()
+
+    dataset = FramesDataset(is_train=True, **config['dataset_params'])
+    log_dir = config['log_dir']
+
+    train(config, generator, region_predictor, bg_predictor, args.checkpoint, log_dir, dataset, args.device_ids)
+
