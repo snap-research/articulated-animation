@@ -113,7 +113,7 @@ def main(opt):
             raise FileNotFoundError(f"Missing or invalid path for {path_label}: {path_value}")
 
     source_image = imageio.imread(opt.source_image)
-    reader = imageio.get_reader(opt.driving_video)
+    reader = imageio.get_reader(opt.driving_video, memtest=False)
     fps = reader.get_meta_data()['fps']
     reader.close()
     driving_video = imageio.mimread(opt.driving_video, memtest=False)
